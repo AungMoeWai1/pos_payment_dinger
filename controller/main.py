@@ -2,6 +2,8 @@ import json
 from odoo import http
 from odoo.http import request, route
 from odoo import fields
+from serial.tools.miniterm import Printable
+
 from .decryption_aes_ecb_pkcs7padding import decrypt
 
 
@@ -39,17 +41,17 @@ class PosOrderController(http.Controller):
         status = data.get('status')
 
         # Find the POS order
-        pos_order = request.env['pos.order'].sudo().search([('pos_reference', '=', ref)], limit=1)
+        pos_order = request.env['pos.order'].sudo().search([('name', '=', ref)], limit=1)
         if pos_order:
             # Find the payment status record for this order
-            payment_status = request.env['pos.payment.status'].sudo().search([('merchant_order', '=', pos_order.id)],
+            payment_status = request.env['pos.payment.status'].sudo().search([('merchant_order', '=', pos_order.pos_reference)],
                                                                              limit=1)
             if payment_status:
                 payment_status.state = status  # Update the status field
             else:
                 # Optionally, create a new record if not found
                 request.env['pos.payment.status'].sudo().create({
-                    'merchant_order': pos_order.id,
+                    'merchant_order': pos_order.pos_reference,
                     'state': status,
                     'paid_at': fields.Datetime.now(),
                     # Add other fields if needed
@@ -69,20 +71,15 @@ class PosOrderController(http.Controller):
         state = kwargs.get('state')
         total = kwargs.get('total')
 
-        print("Merchant Order is :",merchant_order)
-
-        pos_order = request.env['pos.order'].sudo().search([('pos_reference', '=', merchant_order)], limit=1)
-        print("Pos order is :",pos_order.name)
-        if pos_order:
-            # Here directly creating is not safe
-            # It should be search if not found create new
-            record = request.env['pos.payment.status'].sudo().create({
-                'merchant_order': pos_order.id,
-                'provider_name': provider_name,
-                'received_method': received_method,
-                'customer_name': customer_name,
-                'total': total,
-                'state': state,
-                'paid_at': fields.Datetime.now(),
-            })
-            return {'result': 'success', 'id': record.id}
+        # Here directly creating is not safe
+        # It should be search if not found create new
+        record = request.env['pos.payment.status'].sudo().create({
+            'merchant_order': merchant_order,
+            'provider_name': provider_name,
+            'received_method': received_method,
+            'customer_name': customer_name,
+            'total': total,
+            'state': state,
+            'paid_at': fields.Datetime.now(),
+        })
+        return {'result': 'success', 'id': record.id}

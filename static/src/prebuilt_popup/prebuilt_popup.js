@@ -97,14 +97,6 @@ export class PrebuiltPopup extends Component {
         if (this.state.step < 3) {
             if (this.state.step == 2) {
                 // Get country code
-//                await this.pos.data.silentCall("pos.payment", "get_country_code", [
-//                    [this.paymentMethodId],
-//                    this.state.country,
-//                ]).then((result) => {
-//                    this.countryCode = result;
-//                }).catch((error) => {
-//                    throw error;
-//                });
 
                 // Create Payload
                 const payload = {
@@ -175,6 +167,7 @@ export class PrebuiltPopup extends Component {
     }
 
     async pollPaymentStatus(merchantOrder) {
+        console.log("Start polling");
         let continuePolling = true;
         while (continuePolling) {
             try {
