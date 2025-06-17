@@ -97,14 +97,14 @@ export class PrebuiltPopup extends Component {
         if (this.state.step < 3) {
             if (this.state.step == 2) {
                 // Get country code
-                await this.pos.data.silentCall("pos.payment", "get_country_code", [
-                    [this.paymentMethodId],
-                    this.state.country,
-                ]).then((result) => {
-                    this.countryCode = result;
-                }).catch((error) => {
-                    throw error;
-                });
+//                await this.pos.data.silentCall("pos.payment", "get_country_code", [
+//                    [this.paymentMethodId],
+//                    this.state.country,
+//                ]).then((result) => {
+//                    this.countryCode = result;
+//                }).catch((error) => {
+//                    throw error;
+//                });
 
                 // Create Payload
                 const payload = {
@@ -131,7 +131,7 @@ export class PrebuiltPopup extends Component {
                 // Call dinger with payload
                 await this.pos.data.silentCall("pos.payment", "make_payment", [
                     [this.paymentMethodId],
-                    this.token,
+                    "token test",
                     payload,
                 ]).then(async (result) => {
                     if (result) {
@@ -162,6 +162,7 @@ export class PrebuiltPopup extends Component {
     }
 
     async savePaymentStatus() {
+        console.log("Order name is",this.order.name);
         const values = {
             'merchant_order': this.order.name,
             'provider_name': this.paymentMethodType,

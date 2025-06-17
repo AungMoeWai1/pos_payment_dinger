@@ -39,7 +39,7 @@ class PosOrderController(http.Controller):
         status = data.get('status')
 
         # Find the POS order
-        pos_order = request.env['pos.order'].sudo().search([('name', '=', ref)], limit=1)
+        pos_order = request.env['pos.order'].sudo().search([('pos_reference', '=', ref)], limit=1)
         if pos_order:
             # Find the payment status record for this order
             payment_status = request.env['pos.payment.status'].sudo().search([('merchant_order', '=', pos_order.id)],
@@ -69,8 +69,10 @@ class PosOrderController(http.Controller):
         state = kwargs.get('state')
         total = kwargs.get('total')
 
-        pos_order = request.env['pos.order'].sudo().search([('name', '=', merchant_order)], limit=1)
-        print("Pos order is :",pos_order)
+        print("Merchant Order is :",merchant_order)
+
+        pos_order = request.env['pos.order'].sudo().search([('pos_reference', '=', merchant_order)], limit=1)
+        print("Pos order is :",pos_order.name)
         if pos_order:
             # Here directly creating is not safe
             # It should be search if not found create new
@@ -83,4 +85,4 @@ class PosOrderController(http.Controller):
                 'state': state,
                 'paid_at': fields.Datetime.now(),
             })
-        return {'result': 'success', 'id': record.id}
+            return {'result': 'success', 'id': record.id}
