@@ -1,6 +1,6 @@
 <templates id="template" xml:space="preserve">
   <t t-name="pos_payment_dinger.PrebuiltPopup">
-      <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+<!--      <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>-->
       <Dialog title="Checkout" footer="false">
       <div class="d-flex">
         <!-- Sidebar Steps -->
@@ -85,15 +85,15 @@
 
                       <!-- Right: Order Information -->
                       <div class="right-info text-right">
-                            <p><strong>Order ID:</strong>
+                            <p><strong>Order ID :   </strong>
                                 <t t-esc="order.name"/></p>
-                          <p><strong>Customer:</strong>
+                          <p><strong>Customer :   </strong>
                               <t t-esc="state.customerName"/></p>
-                          <p><strong>Email:</strong>
+                          <p><strong>Email :   </strong>
                               <t t-esc="state.email"/></p>
-                          <p><strong>Phone:</strong>
+                          <p><strong>Phone :   </strong>
                               <t t-esc="state.phone"/></p>
-                          <p><strong>Address:</strong>
+                          <p><strong>Address :   </strong>
                               <t t-esc="state.address"/></p>
                         </div>
                   </div>

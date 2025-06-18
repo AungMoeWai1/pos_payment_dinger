@@ -2,9 +2,51 @@ import json
 from odoo import http
 from odoo.http import request, route
 from odoo import fields
-from serial.tools.miniterm import Printable
+from datetime import datetime
 
 from .decryption_aes_ecb_pkcs7padding import decrypt
+
+
+@staticmethod
+def convert_paid_at(date_str: str) -> str:
+    """Convert the date string from Dinger format to Odoo format."""
+    return datetime.strptime(date_str, "%Y%m%d %H%M%S").strftime("%Y-%m-%d %H:%M:%S")
+
+@staticmethod
+def create_new_pos_payment_status(data):
+    merchant_order = data.get('merchantOrderId')  # This is order.name
+    transaction = data.get('transactionId')
+    status = data.get('transactionStatus')
+    total_amount = data.get('totalAmount')
+    created_at = data.get('createdAt')
+    provider_name = data.get('providerName')
+    method_name = data.get('methodName')
+    customer_name = data.get('customerName')
+
+    # Find the payment status record for this order
+    payment_status = request.env['pos.payment.status'].sudo().search([('merchant_order', '=', merchant_order)],
+                                                                     limit=1)
+    if payment_status:
+        # For existing record , update the filed values
+        payment_status.reference=transaction
+        payment_status.provider_name= provider_name
+        payment_status.received_method=method_name
+        payment_status.customer_name=customer_name
+        payment_status.total=total_amount
+        payment_status.state = status
+        payment_status.paid_at = convert_paid_at(created_at)
+    else:
+        # create a new record
+        request.env['pos.payment.status'].sudo().create({
+            'reference': transaction,
+            'merchant_order': merchant_order,
+            'provider_name': provider_name,
+            'received_method': method_name,
+            'customer_name': customer_name,
+            'total': total_amount,
+            'state': status,
+            'paid_at': datetime.now()
+        })
 
 
 class PosOrderController(http.Controller):
@@ -24,7 +66,7 @@ class PosOrderController(http.Controller):
         #     result = json.loads(decrypted_str)
         # except json.JSONDecodeError:
         #     print("Failed to parse decrypted data as JSON:")
-        #     print(decrypted_str)
+        #     print(decrypted_sfrom serial.tools.miniterm import Printabletr)
         #     raise
 
         # ref = result.get('merchantOrderId')  # This is order.name
@@ -63,23 +105,6 @@ class PosOrderController(http.Controller):
 
     @http.route('/pos/payment_status/create_draft', type='json', auth='user', csrf=False, methods=['POST'])
     def create_payment_status_draft(self, **kwargs):
-        # kwargs will receive your data from JS
-        merchant_order = kwargs.get('merchant_order')
-        provider_name = kwargs.get('provider_name')
-        received_method = kwargs.get('received_method')
-        customer_name = kwargs.get('customer_name')
-        state = kwargs.get('state')
-        total = kwargs.get('total')
 
-        # Here directly creating is not safe
-        # It should be search if not found create new
-        record = request.env['pos.payment.status'].sudo().create({
-            'merchant_order': merchant_order,
-            'provider_name': provider_name,
-            'received_method': received_method,
-            'customer_name': customer_name,
-            'total': total,
-            'state': state,
-            'paid_at': fields.Datetime.now(),
-        })
-        return {'result': 'success', 'id': record.id}
+        create_new_pos_payment_status(kwargs)
+        return "Data record created successfully"
